@@ -3,12 +3,16 @@
  */
 
 import {screen, waitFor} from "@testing-library/dom"
-import BillsUI from "../views/BillsUI.js"
-import { bills } from "../fixtures/bills.js"
-import { ROUTES_PATH} from "../constants/routes.js";
-import {localStorageMock} from "../__mocks__/localStorage.js";
+import userEvent from '@testing-library/user-event'
 
-import router from "../app/Router.js";
+import BillsUI from "../views/BillsUI.js"
+import Bills from "../containers/Bills"
+
+import { bills } from "../fixtures/bills.js"
+import { ROUTES, ROUTES_PATH} from "../constants/routes.js"
+import {localStorageMock} from "../__mocks__/localStorage.js"
+
+import router from "../app/Router.js"
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
@@ -36,4 +40,27 @@ describe("Given I am connected as an employee", () => {
         expect(dates).toEqual(datesSorted)
     })
   })
+})
+
+describe("Given that I am an employee on BillsUI", () => {
+    describe("When I click on new bill button", () => {
+        test("Then it should render NewBill page", () => {
+            const onNavigate = (pathname) => {
+                document.body.innerHTML = ROUTES({ pathname })
+            }
+            Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+            window.localStorage.setItem('user', JSON.stringify({
+                type: 'employee'
+            }))
+            document.body.innerHTML = BillsUI({data : bills})
+            const myBills = new Bills({ document, onNavigate, store: null, localStorage: window.localStorage })
+            const handleClickNewBill = jest.fn(myBills.handleClickNewBill)
+
+            const buttonNewBill = screen.getByTestId("btn-new-bill")
+            buttonNewBill.addEventListener("click", handleClickNewBill())
+            userEvent.click(buttonNewBill)
+            expect(handleClickNewBill).toHaveBeenCalled()
+            expect(screen.getByTestId("form-new-bill")).toBeTruthy()
+        })
+    })
 })
