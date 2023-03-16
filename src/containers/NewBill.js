@@ -18,17 +18,22 @@ export default class NewBill {
   handleChangeFile = e => {
     e.preventDefault()
     const input = e.target
+    input.setCustomValidity("")
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
     const filePath = e.target.value.split(/\\/g)
-    const fileName = filePath[filePath.length-1]
-    const allowedExtensions = /\.(jpg|jpeg|png|)$/
+    let fileName = filePath[filePath.length-1]
+    const formData = new FormData()
+    const email = JSON.parse(localStorage.getItem("user")).email
+    formData.append('file', file)
+    formData.append('email', email)
 
-    if (fileName.match(allowedExtensions)) {
-        const formData = new FormData()
-        const email = JSON.parse(localStorage.getItem("user")).email
-        formData.append('file', file)
-        formData.append('email', email)
+    const allowedExtensions = /(\.jpg|\.jpeg|\.png)$/i
 
+    //add conditions to check if extension is valid and alert the user
+    if (!allowedExtensions.exec(filePath)) {
+        input.setCustomValidity("Le fichier doit être une image")
+        return false
+    } else {
         this.store
         .bills()
         .create({
@@ -43,9 +48,6 @@ export default class NewBill {
             this.fileUrl = fileUrl
             this.fileName = fileName
         }).catch(error => console.error(error))
-    } else {
-        input.setCustomValidity("Le fichier doit être une image");
-        file.value = ''
     }
   }
   
