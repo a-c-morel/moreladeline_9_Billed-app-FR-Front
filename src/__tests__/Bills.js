@@ -50,7 +50,7 @@ describe("Given that I am an employee on BillsUI", () => {
             }
             Object.defineProperty(window, 'localStorage', { value: localStorageMock })
             window.localStorage.setItem('user', JSON.stringify({
-                type: 'employee'
+                type: 'Employee'
             }))
             document.body.innerHTML = BillsUI({data : bills})
             const myBills = new Bills({ document, onNavigate, store: null, localStorage: window.localStorage })
@@ -61,6 +61,29 @@ describe("Given that I am an employee on BillsUI", () => {
             userEvent.click(buttonNewBill)
             expect(handleClickNewBill).toHaveBeenCalled()
             expect(screen.getByTestId("form-new-bill")).toBeTruthy()
+        })
+    })
+    describe("When I click on icon eye", () => {
+        test("Then it should open the bill modal", () => {
+            const onNavigate = (pathname) => {
+                document.body.innerHTML = ROUTES({ pathname })
+            }
+            Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+            window.localStorage.setItem('user', JSON.stringify({
+                type: 'Employee'
+            }))
+            document.body.innerHTML = BillsUI({data : bills})
+            const myBills = new Bills({ document, onNavigate, store: null, localStorage: window.localStorage })
+
+            $.fn.modal = jest.fn() //mocks the jQuery modal function for easier testing
+
+            const iconEye = screen.getAllByTestId("icon-eye")[0]
+            const handleClickIconEye = jest.fn(myBills.handleClickIconEye(iconEye))
+
+            iconEye.addEventListener("click", handleClickIconEye())
+            userEvent.click(iconEye)
+            expect(handleClickIconEye).toHaveBeenCalled()
+            expect(screen.getByText("Justificatif")).toBeTruthy()
         })
     })
 })
