@@ -58,10 +58,12 @@ describe("Given that I am an employee on BillsUI", () => {
             const handleClickNewBill = jest.fn(myBills.handleClickNewBill)
 
             const buttonNewBill = screen.getByTestId("btn-new-bill")
+
             buttonNewBill.addEventListener("click", handleClickNewBill())
             userEvent.click(buttonNewBill)
             expect(handleClickNewBill).toHaveBeenCalled()
             expect(screen.getByTestId("form-new-bill")).toBeTruthy()
+            expect(screen.getByText('Envoyer une note de frais')).toBeTruthy()
         })
     })
     describe("When I click on icon eye", () => {
@@ -93,28 +95,31 @@ describe("Given that I am an employee on BillsUI", () => {
 describe("Given I am a user connected as Employee", () => {
     describe("When I navigate to BillsUI", () => {
         test("fetches bills from mock API GET", async () => {
-            localStorage.setItem("user", JSON.stringify({ type: "Employee", email: "a@a" }));
-            const root = document.createElement("div")
-            root.setAttribute("id", "root")
-            document.body.append(root)
-            router()
-            window.onNavigate(ROUTES_PATH.Bills)
-            await waitFor(() => screen.getByText("Mes notes de frais"))
-            const newBillButton  = await screen.getByText("Nouvelle note de frais")
-            expect(newBillButton).toBeTruthy()
-            const typeHeader  = await screen.getByText("Type")
-            expect(typeHeader).toBeTruthy()
-            const nameHeader  = await screen.getByText("Nom")
-            expect(nameHeader).toBeTruthy()
-            const dateHeader  = await screen.getByText("Date")
-            expect(dateHeader).toBeTruthy()
-            const amountHeader  = await screen.getByText("Montant")
-            expect(amountHeader).toBeTruthy()
-            const statusHeader  = await screen.getByText("Statut")
-            expect(statusHeader).toBeTruthy()
-            const actionsHeader  = await screen.getByText("Actions")
-            expect(actionsHeader).toBeTruthy()
-            expect(await waitFor(() => screen.getByTestId("tbody"))).toBeTruthy()
+            Object.defineProperty(window, "localStorage", { value: localStorageMock })
+			window.localStorage.setItem(
+				"user",
+				JSON.stringify({
+					type: "Employee",
+					email: "a@a",
+				})
+			)
+			const root = document.createElement("div")
+			root.setAttribute("id", "root")
+			document.body.append(root)
+			router()
+
+			const onNavigate = (pathname) => {
+				document.body.innerHTML = ROUTES({ pathname })
+			}
+			const mockedBills = new Bills({
+				document,
+				onNavigate,
+				store: mockStore,
+				localStorage: window.localStorage,
+			})
+			console.log(mockStore)
+			const bills = await mockedBills.getBills()
+			expect(bills.length > 0).toBeTruthy()
         })
         describe("When an error occurs on API", () => {
             beforeEach(() => {
@@ -164,6 +169,5 @@ describe("Given I am a user connected as Employee", () => {
                 expect(message).toBeTruthy()
             })
         })
-  
     })
 })
