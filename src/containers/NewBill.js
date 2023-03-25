@@ -16,7 +16,6 @@ export default class NewBill {
     new Logout({ document, localStorage, onNavigate })
   }
   handleChangeFile = e => {
-    e.preventDefault()
     const input = e.target
     input.setCustomValidity("")
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
