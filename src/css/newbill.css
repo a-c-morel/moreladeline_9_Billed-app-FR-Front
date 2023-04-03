@@ -9,6 +9,8 @@
 }
 
 .col-half-row {
+  display:-webkit-box;
+  display:-ms-flexbox;
   display:flex;
   width: 75%;
   margin-left: 20px;
@@ -18,7 +20,8 @@
 .blue-border {
   opacity: 0.5;
   border: 2px solid #0D5AE5 !important;
-  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
   border-radius: 5px;
 }
 
@@ -60,4 +63,14 @@ textarea:focus, input:focus, select:focus {
 
 *[placeholder] {
   color: #0E5AE5 !important;
+}
+
+.file-error {
+    display: none
+}
+
+.visible {
+    display: block;
+    color: red;
+    font-size: 1rem;
 }
