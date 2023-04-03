@@ -16,37 +16,40 @@ export default class NewBill {
     new Logout({ document, localStorage, onNavigate })
   }
   handleChangeFile = e => {
-    const input = e.target
-    input.setCustomValidity("")
-    const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
-    const filePath = e.target.value.split(/\\/g)
+    e.preventDefault()
+    const input = this.document.querySelector(`input[data-testid="file"]`)
+    const errorMessage = this.document.querySelector(".file-error")
+    const file = input.files[0]
+    const filePath = input.value.split(/\\/g)
     let fileName = filePath[filePath.length-1]
     const formData = new FormData()
     const email = JSON.parse(localStorage.getItem("user")).email
     formData.append('file', file)
     formData.append('email', email)
+    const fileExtension = fileName.split(".").pop()
+    const allowedExtensions = ["jpg", "jpeg", "png"]
 
-    const allowedExtensions = /(\.jpg|\.jpeg|\.png)$/i
-
-    //add conditions to check if extension is valid and alert the user
-    if (!allowedExtensions.exec(filePath)) {
-        input.setCustomValidity("Le fichier doit être une image")
-        return false
+    if (!allowedExtensions.includes(fileExtension)) {
+        errorMessage.classList.add("visible")
+        input.value = ''
+        return
     } else {
+        errorMessage.classList.remove("visible")
         this.store
         .bills()
         .create({
             data: formData,
             headers: {
-            noContentType: true
+                noContentType: true
             }
         })
         .then(({fileUrl, key}) => {
-            console.log(fileUrl)
             this.billId = key
             this.fileUrl = fileUrl
             this.fileName = fileName
         }).catch(error => console.error(error))
+
+        
     }
   }
   
