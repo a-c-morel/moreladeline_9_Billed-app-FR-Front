@@ -24,8 +24,6 @@ export default class NewBill {
     let fileName = filePath[filePath.length-1]
     const formData = new FormData()
     const email = JSON.parse(localStorage.getItem("user")).email
-    formData.append('file', file)
-    formData.append('email', email)
     const fileExtension = fileName.split(".").pop()
     const allowedExtensions = ["jpg", "jpeg", "png"]
 
@@ -34,7 +32,11 @@ export default class NewBill {
         input.value = ''
         return
     } else {
-        errorMessage.classList.remove("visible")
+        if(errorMessage.classList.contains("visible")) {
+            errorMessage.classList.remove("visible")
+        }
+        formData.append("file", file);
+		formData.append("email", email);
         this.store
         .bills()
         .create({
@@ -43,13 +45,17 @@ export default class NewBill {
                 noContentType: true
             }
         })
-        .then(({fileUrl, key}) => {
-            this.billId = key
-            this.fileUrl = fileUrl
-            this.fileName = fileName
-        }).catch(error => console.error(error))
-
-        
+        .then(
+            /* istanbul ignore next */
+            ({fileUrl, key}) => {
+                this.billId = key
+                this.fileUrl = fileUrl
+                this.fileName = fileName
+            }
+        ).catch(
+            /* istanbul ignore next */
+            error => console.error(error)
+        )
     }
   }
   

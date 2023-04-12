@@ -41,6 +41,9 @@ export default class Login {
     e.preventDefault()
     const user = {
       type: "Admin",
+      /* bug fixed : error on targeting elements: */
+      // email: e.target.querySelector(`input[data-testid="employee-email-input"]`).value,
+      // password: e.target.querySelector(`input[data-testid="employee-password-input"]`).value,
       email: e.target.querySelector(`input[data-testid="admin-email-input"]`).value,
       password: e.target.querySelector(`input[data-testid="admin-password-input"]`).value,
       status: "connected"

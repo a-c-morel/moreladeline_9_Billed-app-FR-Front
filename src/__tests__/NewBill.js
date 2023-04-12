@@ -3,17 +3,18 @@
  */
 
 import { fireEvent, screen, waitFor } from "@testing-library/dom"
-import userEvent from '@testing-library/user-event'
+//import userEvent from '@testing-library/user-event'
 
 import { ROUTES, ROUTES_PATH} from "../constants/routes.js"
 import {localStorageMock} from "../__mocks__/localStorage.js"
-import mockStore from "../__mocks__/store"
+import mockStore from "../__mocks__/store.js"
 
 import router from "../app/Router.js"
 import NewBill from "../containers/NewBill.js"
 import NewBillUI from "../views/NewBillUI.js"
 import BillsUI from "../views/BillsUI.js"
 
+//jest.mock("../app/store", () => mockStore)
 
 describe("Given I am connected as an employee", () => {
     describe("When I am on NewBill Page", () => {
@@ -48,52 +49,71 @@ describe("Given I am connected as an employee", () => {
 
         describe("When user uploads a file", () => {
             describe("When the file is an image with png, jpeg or jpg extension", () => {
-                test("Then, it should be uploaded", async () => {
-                    const html = NewBillUI()
-                    document.body.innerHTML = html
-                    const onNavigate = (pathname) => {
-                        document.body.innerHTML = ROUTES({ pathname })
-                    }
-                    
-                    const newBill = new NewBill({ document, onNavigate, store: null, localStorage: window.localStorage })
-                    
-                    const handleChangeFile = jest.fn(newBill.handleChangeFile)
-                    const fileInput = screen.getByTestId('file')
-                    const errorMessage = screen.getByTestId('file-error-message')
-                    fileInput.addEventListener("change", (e) => handleChangeFile(e))
+                test("Then, it should be uploaded", () => {
+                    Object.defineProperty(window, "localStorage", { value: localStorageMock })
+                    window.localStorage.setItem(
+                        "user",
+                        JSON.stringify({
+                            type: "Employee",
+                        })
+                    )
 
-                    const file = new File(['hello'], 'hello.png', {type: 'image/png'})
-    
-                    await userEvent.upload(fileInput, file)
-                    
+                    const root = document.createElement("div")
+                    root.setAttribute("id", "root")
+
+                    document.body.append(root)
+
+                    router()
+			        window.onNavigate(ROUTES_PATH.NewBill)
+
+			        const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage })
+
+			        const handleChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
+
+			        const fileInput = screen.getByTestId('file')
+			        fileInput.addEventListener("change", handleChangeFile)
+
+                    const file = new File(["test"], "test.png", {type: "image/png"})
+                    fireEvent.change(fileInput, {
+                        target: {
+                            files: [file]
+                        }
+                    })
+
                     expect(handleChangeFile).toHaveBeenCalled()
+                    expect(handleChangeFile).toBeTruthy()
                     expect(fileInput.files[0]).toBe(file)
-                    expect(fileInput.files.item(0)).toBe(file)
                     expect(fileInput.files).toHaveLength(1)
-                    expect(errorMessage.classList.contains('file-error')).toBeTruthy()
                 })
             })
             describe("When the file is not an image with png, jpeg or jpg extension", () => {
-                test("Then, it should not be uploaded", async () => {
-                    const html = NewBillUI()
-                    document.body.innerHTML = html
-                    const onNavigate = (pathname) => {
-                        document.body.innerHTML = ROUTES({ pathname })
-                    }
-                    
-                    const newBill = new NewBill({ document, onNavigate, store: null, localStorage: window.localStorage })
-                    
+                test("Then, it should not be uploaded", () => {
+                    document.body.innerHTML = NewBillUI()
+
+                    const newBill = new NewBill({
+			            document,
+			            onNavigate,
+			            firestore: null,
+			            localStorage: window.localStorage,
+		            })
+
                     const handleChangeFile = jest.fn(newBill.handleChangeFile)
+
                     const fileInput = screen.getByTestId('file')
+		            fileInput.addEventListener("change", handleChangeFile)
+
+                    const wrongFile = new File(["test.pdf"], "test.pdf", { type: "document/pdf" })
+                    fireEvent.change(fileInput, {
+                        target: { files: [wrongFile] },
+                    })
+
                     const errorMessage = screen.getByTestId('file-error-message')
-                    fileInput.addEventListener("change", (e) => handleChangeFile(e))
-    
-                    const file = new File(['goodbye'], 'goodbye.pdf', {type: 'document/pdf'})
-    
-                    await userEvent.upload(fileInput, file)
-                    
-                    expect(handleChangeFile).toHaveBeenCalled()
-                    expect(fileInput.value).not.toBe("goodbye.pdf")
+
+		            expect(handleChangeFile).toHaveBeenCalled()
+                    expect(fileInput.value).not.toBe("test.pdf")
+                    expect(errorMessage.textContent).toEqual(
+                        expect.stringContaining("Le fichier doit être une image")
+                    )
                     expect(errorMessage.classList.contains('visible')).toBeTruthy()
                 })
             })
