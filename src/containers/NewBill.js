@@ -24,17 +24,13 @@ export default class NewBill {
     let fileName = filePath[filePath.length-1]
     const formData = new FormData()
     const email = JSON.parse(localStorage.getItem("user")).email
-    const fileExtension = fileName.split(".").pop()
-    const allowedExtensions = ["jpg", "jpeg", "png"]
 
-    if (!allowedExtensions.includes(fileExtension)) {
+    if (file.type !== 'image/png' && file.type !== 'image/jpeg') {
         errorMessage.classList.add("visible")
         input.value = ''
         return
     } else {
-        if(errorMessage.classList.contains("visible")) {
-            errorMessage.classList.remove("visible")
-        }
+        errorMessage.classList.remove("visible")
         formData.append("file", file);
 		formData.append("email", email);
         this.store
@@ -46,14 +42,12 @@ export default class NewBill {
             }
         })
         .then(
-            /* istanbul ignore next */
             ({fileUrl, key}) => {
                 this.billId = key
                 this.fileUrl = fileUrl
                 this.fileName = fileName
             }
         ).catch(
-            /* istanbul ignore next */
             error => console.error(error)
         )
     }
@@ -80,8 +74,9 @@ export default class NewBill {
     this.onNavigate(ROUTES_PATH['Bills'])
   }
 
-  // not need to cover this function by tests
+
   updateBill = (bill) => {
+    /* istanbul ignore next */
     if (this.store) {
       this.store
       .bills()
